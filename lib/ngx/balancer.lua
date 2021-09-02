@@ -14,8 +14,6 @@ local FFI_ERROR = base.FFI_ERROR
 local int_out = ffi.new("int[1]")
 local get_request = base.get_request
 local error = error
-local get_string_buf = base.get_string_buf
-local get_size_ptr = base.get_size_ptr
 local type = type
 local tonumber = tonumber
 local max = math.max
@@ -32,7 +30,7 @@ if subsystem == 'http' then
     int ngx_http_lua_ffi_balancer_set_current_peer(ngx_http_request_t *r,
         const unsigned char *addr, size_t addr_len, int port,
         const unsigned char *host, ssize_t host_len,
-        unsigned char *errbuf, size_t *errbuf_size);
+        char **err);
 
     int ngx_http_lua_ffi_balancer_enable_keepalive(ngx_http_request_t *r,
         unsigned long timeout, unsigned int max_requests, char **err);
@@ -136,21 +134,16 @@ if subsystem == "http" then
                   .. "(string expected, got " .. type(host) .. ")")
         end
 
-        local errbuf_size = 1024
-        local errbuf = get_string_buf(errbuf_size)
-        local sizep = get_size_ptr()
-        sizep[0] = errbuf_size
         local rc = ngx_lua_ffi_balancer_set_current_peer(r, addr, #addr,
                                                          port,
                                                          host,
                                                          host and #host or 0,
-                                                         errbuf,
-                                                         sizep)
+                                                         errmsg)
         if rc == FFI_OK then
             return true
         end
 
-        return nil, ffi_str(errbuf, sizep[0])
+        return nil, ffi_str(errmsg[0])
     end
 else
     function _M.set_current_peer(addr, port, host)
