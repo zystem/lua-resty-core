@@ -278,7 +278,7 @@ http {
             local ip = "127.0.0.2"
             local port = 8080
 
-            local ok, err = balancer.set_current_peer("127.0.0.2", 8080, nil, host)
+            local ok, err = balancer.set_current_peer("127.0.0.2", 8080, host)
             if not ok then
                 ngx.log(ngx.ERR, "failed to set current peer: ", err)
                 return
@@ -307,7 +307,7 @@ http {
         balancer_by_lua_block {
             local balancer = require "ngx.balancer"
             local host = "example.org"
-            balancer.set_current_peer("127.0.0.2", 8080, nil, host)
+            balancer.set_current_peer("127.0.0.2", 8080, host)
             balancer.enable_keepalive(60, 100)
         }
 
